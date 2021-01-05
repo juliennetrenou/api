@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class EmployeeService {
     private EmployeeRepository employeeRepository;
@@ -18,11 +20,19 @@ public class EmployeeService {
     }
 
     public Employee saveEmployee(Employee employee){
-        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+                employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         return employeeRepository.save(employee);
     }
 
-    public Boolean signIn(String email, String password){
-        return employeeRepository.employeeExist(email,password);
+    public Employee signIn(String email){
+        return employeeRepository.employeeExist(email);
+    }
+
+    public Long nbEmployee(){
+        return employeeRepository.count();
+    }
+
+    public List<Employee> allEmployee(){
+        return employeeRepository.findAll();
     }
 }

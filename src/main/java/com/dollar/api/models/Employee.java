@@ -42,4 +42,7 @@ public class Employee {
 
     @NotNull
     private String password;
+
+    @NotNull
+    private String profile = "user" ;
 }

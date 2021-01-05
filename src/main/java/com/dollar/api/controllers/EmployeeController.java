@@ -9,8 +9,11 @@ import io.swagger.annotations.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/api")
@@ -18,14 +21,17 @@ import org.springframework.web.bind.annotation.*;
 @Api(
         value = "Api",
         description = "operation to manage user"
-        )
+)
 public class EmployeeController {
 
     private EmployeeService employeeService;
+    PasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public EmployeeController(EmployeeService employeeService) {
+    public EmployeeController(EmployeeService employeeService, PasswordEncoder passwordEncoder) {
         this.employeeService = employeeService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/save")
@@ -33,9 +39,9 @@ public class EmployeeController {
             value = "save employee in base",
             httpMethod = "POST",
             notes = "create new user",
-            authorizations ={@Authorization(value = "apiKey")}
+            authorizations = {@Authorization(value = "apiKey")}
     )
-    public ResponseEntity<?> saveEmployee(@RequestBody Employee employee){
+    public ResponseEntity<?> saveEmployee(@RequestBody Employee employee) {
         employeeService.saveEmployee(employee);
         return new ResponseEntity<>(
                 new ApiResponse("User registered successfully !", true),
@@ -43,28 +49,59 @@ public class EmployeeController {
         );
     }
 
-    @PostMapping("/sign-in/{email}/{password}")
+    @GetMapping("/sign-in/{email}/{password}")
     @ApiOperation(
             value = "sign in ",
-            httpMethod = "POST",
+            httpMethod = "GET",
             notes = "employee sign in",
-            authorizations ={@Authorization(value = "apiKey")}
+            authorizations = {@Authorization(value = "apiKey")}
     )
-    public ResponseEntity<?> signInEmployee(@PathVariable String email, @PathVariable String password){
+    public Employee signInEmployee(@PathVariable String email, @PathVariable String password) {
 
-        if(employeeService.signIn(email,password).equals(true)){
-            return new ResponseEntity<>(
+        System.out.println(email);
+        System.out.println(password);
+
+        //System.out.println(employeeService.signIn(email, password));;
+
+        Employee employee = employeeService.signIn(email);
+        System.out.println(employee.getName());
+        if (employeeService.signIn(email) != null && passwordEncoder.matches(password,employee.getPassword())) {
+            return employee;
+
+            /*return new ResponseEntity<>(
                     new ApiResponse("Employee exist !", true),
                     HttpStatus.OK
-            );
+            );*/
 
-        }else {
-            return new ResponseEntity<>(
+        } else {
+            return null;
+            /*new ResponseEntity<>(
                     new ApiResponse("wrong !", false),
                     HttpStatus.BAD_REQUEST
             );
-
+*/
         }
     }
 
+    @GetMapping("/nbEmployee")
+    @ApiOperation(
+            value = "get nb employee",
+            httpMethod = "GET",
+            notes = "nb of employee in database",
+            authorizations = {@Authorization(value = "apiKey")}
+    )
+    public Long nbEmployee(){
+        return employeeService.nbEmployee();
+    }
+
+    @GetMapping("/allEmployee")
+    @ApiOperation(
+            value = "get all employee",
+            httpMethod = "GET",
+            notes = "all employee in database",
+            authorizations = {@Authorization(value = "apiKey")}
+    )
+    public List<Employee> allEmployee(){
+        return employeeService.allEmployee();
+    }
 }
